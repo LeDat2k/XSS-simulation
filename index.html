@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vulnerable Blog ssssssb</title>
+    <title>Vulnerable Blog </title>
     <!-- Google Fonts Roboto -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -417,271 +417,263 @@
     </div>
 
     <script>
-        // Load comments on page load for both panels
-        window.onload = function() {
-            loadComments();
-            loadCommentsSafe();
-            checkUrlParameters();
-            checkUrlParametersSafe();
-        };
+        
+    const BACKEND_URL = "http://172.22.192.1:3000"; // Hoặc http://192.168.1.10:3000
 
-        // VULNERABLE: Stored XSS - No sanitization
-        function submitComment(event) {
-            event.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const comment = document.getElementById('comment').value;
-            
-            // Get existing comments
-            let comments = JSON.parse(localStorage.getItem('comments') || '[]');
-            
-            // Add new comment (VULNERABLE - no sanitization)
-            comments.push({
-                name: name,
-                email: email,
-                comment: comment,
-                date: new Date().toLocaleString()
-            });
-            
-            // Save to localStorage
-            localStorage.setItem('comments', JSON.stringify(comments));
-            
-            // Clear form
-            document.getElementById('commentForm').reset();
-            
-            // Reload comments
-            loadComments();
-            
-            return false;
+    // VULNERABLE: Gửi comment lên backend
+    async function submitComment(event) {
+        event.preventDefault();
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const comment = document.getElementById('comment').value;
+
+        await fetch(`${BACKEND_URL}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name, email, comment
+            })
+        });
+
+        document.getElementById('commentForm').reset();
+        await loadComments();
+        return false;
+    }
+
+    // VULNERABLE: Hiển thị tất cả comment từ backend
+    async function loadComments() {
+        const commentsList = document.getElementById('commentsList');
+        const res = await fetch(`${BACKEND_URL}/comments`);
+        const comments = await res.json();
+
+        if (comments.length === 0) {
+            commentsList.innerHTML = '<p style="color: #999; text-align: center;">No comments yet. Be the first to comment!</p>';
+            return;
         }
 
-        // VULNERABLE: Display comments without sanitization
-        function loadComments() {
-            const commentsList = document.getElementById('commentsList');
-            const comments = JSON.parse(localStorage.getItem('comments') || '[]');
-            
-            if (comments.length === 0) {
-                commentsList.innerHTML = '<p style="color: #999; text-align: center;">No comments yet. Be the first to comment!</p>';
-                return;
-            }
-            
-            // VULNERABLE: innerHTML with user input
-            commentsList.innerHTML = comments.map(c => `
-                <div class="comment">
-                    <div class="comment-header">
-                        <span class="comment-author">${c.name}</span>
-                        <span class="comment-date">${c.date}</span>
-                    </div>
-                    <div class="comment-body">
-                        ${c.comment}
-                    </div>
+        commentsList.innerHTML = comments.map(c => `
+            <div class="comment">
+                <div class="comment-header">
+                    <span class="comment-author">${c.name}</span>
+                    <span class="comment-date">${c.date}</span>
                 </div>
-            `).join('');
+                <div class="comment-body">
+                    ${c.comment}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // VULNERABLE: Xóa toàn bộ comment trên backend
+    async function clearComments() {
+        if (confirm('Are you sure you want to clear all comments?')) {
+            await fetch(`${BACKEND_URL}/comments`, { method: 'DELETE' });
+            await loadComments();
         }
+    }
 
-        // ======== PROTECTED SIDE HELPERS ========
-        function escapeHTML(str) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            };
-            return String(str).replace(/[&<>"']/g, ch => map[ch]);
+    // ======== PROTECTED SIDE HELPERS ========
+    function escapeHTML(str) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+        return String(str).replace(/[&<>"']/g, ch => map[ch]);
+    }
+
+    // PROTECTED: sanitize on write and render with textContent
+    async function submitCommentSafe(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('nameSafe').value;
+        const email = document.getElementById('emailSafe').value;
+        const comment = document.getElementById('commentSafe').value;
+
+        let comments = JSON.parse(localStorage.getItem('commentsSafe') || '[]');
+        comments.push({
+            name: escapeHTML(name),
+            email: escapeHTML(email),
+            comment: escapeHTML(comment),
+            date: new Date().toLocaleString()
+        });
+        localStorage.setItem('commentsSafe', JSON.stringify(comments));
+
+        document.getElementById('commentFormSafe').reset();
+        await loadCommentsSafe();
+        return false;
+    }
+
+    async function loadCommentsSafe() {
+        const list = document.getElementById('commentsListSafe');
+        const comments = JSON.parse(localStorage.getItem('commentsSafe') || '[]');
+        if (comments.length === 0) {
+            list.textContent = 'No comments yet. Be the first to comment!';
+            list.style.color = '#999';
+            list.style.textAlign = 'center';
+            return;
         }
+        // Build nodes safely
+        list.innerHTML = '';
+        comments.forEach(c => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'comment';
 
-        // PROTECTED: sanitize on write and render with textContent
-        function submitCommentSafe(event) {
-            event.preventDefault();
+            const header = document.createElement('div');
+            header.className = 'comment-header';
 
-            const name = document.getElementById('nameSafe').value;
-            const email = document.getElementById('emailSafe').value;
-            const comment = document.getElementById('commentSafe').value;
+            const author = document.createElement('span');
+            author.className = 'comment-author';
+            author.textContent = c.name;
 
-            let comments = JSON.parse(localStorage.getItem('commentsSafe') || '[]');
-            comments.push({
-                name: escapeHTML(name),
-                email: escapeHTML(email),
-                comment: escapeHTML(comment),
-                date: new Date().toLocaleString()
-            });
-            localStorage.setItem('commentsSafe', JSON.stringify(comments));
+            const date = document.createElement('span');
+            date.className = 'comment-date';
+            date.textContent = c.date;
 
-            document.getElementById('commentFormSafe').reset();
+            header.appendChild(author);
+            header.appendChild(date);
+
+            const body = document.createElement('div');
+            body.className = 'comment-body';
+            body.textContent = c.comment;
+
+            wrapper.appendChild(header);
+            wrapper.appendChild(body);
+            list.appendChild(wrapper);
+        });
+    }
+
+    function clearCommentsSafe() {
+        if (confirm('Are you sure you want to clear all comments?')) {
+            localStorage.removeItem('commentsSafe');
             loadCommentsSafe();
-            return false;
         }
+    }
 
-        function loadCommentsSafe() {
-            const list = document.getElementById('commentsListSafe');
-            const comments = JSON.parse(localStorage.getItem('commentsSafe') || '[]');
-            if (comments.length === 0) {
-                list.textContent = 'No comments yet. Be the first to comment!';
-                list.style.color = '#999';
-                list.style.textAlign = 'center';
-                return;
-            }
-            // Build nodes safely
-            list.innerHTML = '';
-            comments.forEach(c => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'comment';
+    // VULNERABLE: Reflected XSS - Search functionality
+    function searchPosts() {
+        const searchInput = document.getElementById('searchInput').value;
+        const searchResults = document.getElementById('searchResults');
+        
+        // VULNERABLE: Directly inserting user input
+        searchResults.innerHTML = `
+            <p>You searched for: <strong>${searchInput}</strong></p>
+            <p style="color: #999; margin-top: 10px;">No results found.</p>
+        `;
+    }
 
-                const header = document.createElement('div');
-                header.className = 'comment-header';
+    // PROTECTED: Reflected search
+    async function searchPostsSafe() {
+        const value = document.getElementById('searchInputSafe').value;
+        const box = document.getElementById('searchResultsSafe');
+        box.innerHTML = '';
+        const p1 = document.createElement('p');
+        const strong = document.createElement('strong');
+        p1.append('You searched for: ');
+        strong.textContent = value;
+        p1.appendChild(strong);
+        const p2 = document.createElement('p');
+        p2.style.color = '#999';
+        p2.style.marginTop = '10px';
+        p2.textContent = 'No results found.';
+        box.appendChild(p1);
+        box.appendChild(p2);
+    }
 
-                const author = document.createElement('span');
-                author.className = 'comment-author';
-                author.textContent = c.name;
-
-                const date = document.createElement('span');
-                date.className = 'comment-date';
-                date.textContent = c.date;
-
-                header.appendChild(author);
-                header.appendChild(date);
-
-                const body = document.createElement('div');
-                body.className = 'comment-body';
-                body.textContent = c.comment;
-
-                wrapper.appendChild(header);
-                wrapper.appendChild(body);
-                list.appendChild(wrapper);
-            });
-        }
-
-        function clearCommentsSafe() {
-            if (confirm('Are you sure you want to clear all comments?')) {
-                localStorage.removeItem('commentsSafe');
-                loadCommentsSafe();
-            }
-        }
-
-        // VULNERABLE: Reflected XSS - Search functionality
-        function searchPosts() {
-            const searchInput = document.getElementById('searchInput').value;
-            const searchResults = document.getElementById('searchResults');
-            
-            // VULNERABLE: Directly inserting user input
-            searchResults.innerHTML = `
-                <p>You searched for: <strong>${searchInput}</strong></p>
-                <p style="color: #999; margin-top: 10px;">No results found.</p>
+    // VULNERABLE: DOM-based XSS - URL parameters
+    function checkUrlParameters() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get('message');
+        const username = urlParams.get('username');
+        
+        if (message) {
+            // VULNERABLE: Directly inserting URL parameter
+            document.getElementById('urlMessage').innerHTML = `
+                <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 6px; color: #155724;">
+                    <strong>Message:</strong> ${message}
+                </div>
             `;
         }
+        
+        if (username) {
+            // VULNERABLE: Directly inserting URL parameter
+            document.querySelector('header p').innerHTML = `Welcome back, ${username}!`;
+        }
+    }
 
-        // PROTECTED: Reflected search
-        function searchPostsSafe() {
-            const value = document.getElementById('searchInputSafe').value;
-            const box = document.getElementById('searchResultsSafe');
+    // PROTECTED: DOM params safely
+    async function checkUrlParametersSafe() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get('message');
+        const username = urlParams.get('username');
+
+        if (message) {
+            const box = document.getElementById('urlMessageSafe');
             box.innerHTML = '';
-            const p1 = document.createElement('p');
+            const wrap = document.createElement('div');
+            wrap.style.background = '#d4edda';
+            wrap.style.border = '1px solid #c3e6cb';
+            wrap.style.padding = '15px';
+            wrap.style.borderRadius = '6px';
+            wrap.style.color = '#155724';
             const strong = document.createElement('strong');
-            p1.append('You searched for: ');
-            strong.textContent = value;
-            p1.appendChild(strong);
-            const p2 = document.createElement('p');
-            p2.style.color = '#999';
-            p2.style.marginTop = '10px';
-            p2.textContent = 'No results found.';
-            box.appendChild(p1);
-            box.appendChild(p2);
+            strong.textContent = 'Message:';
+            const span = document.createElement('span');
+            span.textContent = ' ' + message;
+            wrap.appendChild(strong);
+            wrap.appendChild(span);
+            box.appendChild(wrap);
         }
 
-        // VULNERABLE: DOM-based XSS - URL parameters
-        function checkUrlParameters() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const message = urlParams.get('message');
-            const username = urlParams.get('username');
-            
-            if (message) {
-                // VULNERABLE: Directly inserting URL parameter
-                document.getElementById('urlMessage').innerHTML = `
-                    <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 6px; color: #155724;">
-                        <strong>Message:</strong> ${message}
-                    </div>
-                `;
+        if (username) {
+            // Keep the original subtitle intact; show safe greeting under it
+            const headerEl = document.querySelector('header');
+            let greet = document.getElementById('safeGreeting');
+            if (!greet) {
+                greet = document.createElement('p');
+                greet.id = 'safeGreeting';
+                greet.style.marginTop = '6px';
+                headerEl.appendChild(greet);
             }
-            
-            if (username) {
-                // VULNERABLE: Directly inserting URL parameter
-                document.querySelector('header p').innerHTML = `Welcome back, ${username}!`;
+            greet.textContent = `Welcome back, ${username}!`;
+        }
+    }
+
+    // Add some demo comments if none exist
+    if (!localStorage.getItem('comments')) {
+        const demoComments = [
+            {
+                name: 'Alice',
+                email: 'alice@example.com',
+                comment: 'Great article! Very informative.',
+                date: new Date().toLocaleString()
+            },
+            {
+                name: 'Bob',
+                email: 'bob@example.com',
+                comment: 'Thanks for sharing this valuable content!',
+                date: new Date().toLocaleString()
             }
-        }
+        ];
+        localStorage.setItem('comments', JSON.stringify(demoComments));
+    }
+    // Seed protected side with demo comments as well
+    if (!localStorage.getItem('commentsSafe')) {
+        const demoSafe = [
+            { name: 'Charlie', email: 'charlie@example.com', comment: 'This side is safe ✨', date: new Date().toLocaleString() }
+        ];
+        localStorage.setItem('commentsSafe', JSON.stringify(demoSafe));
+    }
 
-        // PROTECTED: DOM params safely
-        function checkUrlParametersSafe() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const message = urlParams.get('message');
-            const username = urlParams.get('username');
-
-            if (message) {
-                const box = document.getElementById('urlMessageSafe');
-                box.innerHTML = '';
-                const wrap = document.createElement('div');
-                wrap.style.background = '#d4edda';
-                wrap.style.border = '1px solid #c3e6cb';
-                wrap.style.padding = '15px';
-                wrap.style.borderRadius = '6px';
-                wrap.style.color = '#155724';
-                const strong = document.createElement('strong');
-                strong.textContent = 'Message:';
-                const span = document.createElement('span');
-                span.textContent = ' ' + message;
-                wrap.appendChild(strong);
-                wrap.appendChild(span);
-                box.appendChild(wrap);
-            }
-
-            if (username) {
-                // Keep the original subtitle intact; show safe greeting under it
-                const headerEl = document.querySelector('header');
-                let greet = document.getElementById('safeGreeting');
-                if (!greet) {
-                    greet = document.createElement('p');
-                    greet.id = 'safeGreeting';
-                    greet.style.marginTop = '6px';
-                    headerEl.appendChild(greet);
-                }
-                greet.textContent = `Welcome back, ${username}!`;
-            }
-        }
-
-        // Clear all comments
-        function clearComments() {
-            if (confirm('Are you sure you want to clear all comments?')) {
-                localStorage.removeItem('comments');
-                loadComments();
-            }
-        }
-
-        // Add some demo comments if none exist
-        if (!localStorage.getItem('comments')) {
-            const demoComments = [
-                {
-                    name: 'Alice',
-                    email: 'alice@example.com',
-                    comment: 'Great article! Very informative.',
-                    date: new Date().toLocaleString()
-                },
-                {
-                    name: 'Bob',
-                    email: 'bob@example.com',
-                    comment: 'Thanks for sharing this valuable content!',
-                    date: new Date().toLocaleString()
-                }
-            ];
-            localStorage.setItem('comments', JSON.stringify(demoComments));
-        }
-        // Seed protected side with demo comments as well
-        if (!localStorage.getItem('commentsSafe')) {
-            const demoSafe = [
-                { name: 'Charlie', email: 'charlie@example.com', comment: 'This side is safe ✨', date: new Date().toLocaleString() }
-            ];
-            localStorage.setItem('commentsSafe', JSON.stringify(demoSafe));
-        }
+    // Gọi hàm load khi tải trang
+    window.onload = function() {
+        loadComments();
+        loadCommentsSafe();
+        checkUrlParameters();
+        checkUrlParametersSafe();
+    };
     </script>
 </body>
 </html>
