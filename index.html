@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerable Blog - XSS Lab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .warning-banner {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .vulnerability-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .vulnerability-info h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .vulnerability-info ul {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .vulnerability-info ul li {
+            margin: 5px 0;
+        }
+
+        .comment-section {
+            margin-top: 40px;
+        }
+
+        .comment-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-clear {
+            background: #dc3545;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn-clear:hover {
+            transform: translateY(-2px);
+        }
+
+        .comments-list {
+            margin-top: 30px;
+        }
+
+        .comment {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .comment-author {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .comment-date {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .comment-body {
+            color: #333;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .search-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .search-box button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .search-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            min-height: 50px;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .vulnerability-badge {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="warning-banner">
+        ⚠️ EDUCATIONAL PURPOSE ONLY - This is a deliberately vulnerable application for security testing ⚠️
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>🐛 Vulnerable Blog</h1>
+            <p>XSS Security Lab - Practice Your Skills</p>
+        </header>
+
+        <div class="content">
+            <!-- Vulnerability Information -->
+            <div class="vulnerability-info">
+                <h3>🎯 Known Vulnerabilities in This Application:</h3>
+                <ul>
+                    <li><strong>Stored XSS</strong> - Comments are not sanitized</li>
+                    <li><strong>Reflected XSS</strong> - Search functionality reflects input</li>
+                    <li><strong>DOM-based XSS</strong> - URL parameters are parsed unsafely</li>
+                    <li><strong>No CSP</strong> - Content Security Policy not implemented</li>
+                    <li><strong>No Input Validation</strong> - All inputs accepted</li>
+                </ul>
+            </div>
+
+            <!-- Search Section (Reflected XSS) -->
+            <div class="search-section">
+                <h2>🔍 Search Posts <span class="vulnerability-badge">Reflected XSS</span></h2>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search for posts...">
+                    <button onclick="searchPosts()">Search</button>
+                </div>
+                <div class="search-results" id="searchResults"></div>
+            </div>
+
+            <!-- Comment Section (Stored XSS) -->
+            <div class="comment-section">
+                <h2>💬 Comments <span class="vulnerability-badge">Stored XSS</span></h2>
+                
+                <div class="comment-form">
+                    <form id="commentForm" onsubmit="return submitComment(event)">
+                        <div class="form-group">
+                            <label for="name">Name:</label>
+                            <input type="text" id="name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="comment">Comment:</label>
+                            <textarea id="comment" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn-submit">Post Comment</button>
+                        <button type="button" class="btn-clear" onclick="clearComments()">Clear All Comments</button>
+                    </form>
+                </div>
+
+                <div class="comments-list" id="commentsList"></div>
+            </div>
+
+            <!-- URL Parameter Section (DOM-based XSS) -->
+            <div id="urlMessage" style="margin-top: 30px;"></div>
+        </div>
+
+        <footer>
+            <p>© 2024 Vulnerable Blog - Educational Security Lab</p>
+            <p style="font-size: 12px; margin-top: 10px;">
+                Use this application only for authorized security testing and learning
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Load comments on page load
+        window.onload = function() {
+            loadComments();
+            checkUrlParameters();
+        };
+
+        // VULNERABLE: Stored XSS - No sanitization
+        function submitComment(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const comment = document.getElementById('comment').value;
+            
+            // Get existing comments
+            let comments = JSON.parse(localStorage.getItem('comments') || '[]');
+            
+            // Add new comment (VULNERABLE - no sanitization)
+            comments.push({
+                name: name,
+                email: email,
+                comment: comment,
+                date: new Date().toLocaleString()
+            });
+            
+            // Save to localStorage
+            localStorage.setItem('comments', JSON.stringify(comments));
+            
+            // Clear form
+            document.getElementById('commentForm').reset();
+            
+            // Reload comments
+            loadComments();
+            
+            return false;
+        }
+
+        // VULNERABLE: Display comments without sanitization
+        function loadComments() {
+            const commentsList = document.getElementById('commentsList');
+            const comments = JSON.parse(localStorage.getItem('comments') || '[]');
+            
+            if (comments.length === 0) {
+                commentsList.innerHTML = '<p style="color: #999; text-align: center;">No comments yet. Be the first to comment!</p>';
+                return;
+            }
+            
+            // VULNERABLE: innerHTML with user input
+            commentsList.innerHTML = comments.map(c => `
+                <div class="comment">
+                    <div class="comment-header">
+                        <span class="comment-author">${c.name}</span>
+                        <span class="comment-date">${c.date}</span>
+                    </div>
+                    <div class="comment-body">
+                        ${c.comment}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // VULNERABLE: Reflected XSS - Search functionality
+        function searchPosts() {
+            const searchInput = document.getElementById('searchInput').value;
+            const searchResults = document.getElementById('searchResults');
+            
+            // VULNERABLE: Directly inserting user input
+            searchResults.innerHTML = `
+                <p>You searched for: <strong>${searchInput}</strong></p>
+                <p style="color: #999; margin-top: 10px;">No results found.</p>
+            `;
+        }
+
+        // VULNERABLE: DOM-based XSS - URL parameters
+        function checkUrlParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const username = urlParams.get('username');
+            
+            if (message) {
+                // VULNERABLE: Directly inserting URL parameter
+                document.getElementById('urlMessage').innerHTML = `
+                    <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 6px; color: #155724;">
+                        <strong>Message:</strong> ${message}
+                    </div>
+                `;
+            }
+            
+            if (username) {
+                // VULNERABLE: Directly inserting URL parameter
+                document.querySelector('header p').innerHTML = `Welcome back, ${username}!`;
+            }
+        }
+
+        // Clear all comments
+        function clearComments() {
+            if (confirm('Are you sure you want to clear all comments?')) {
+                localStorage.removeItem('comments');
+                loadComments();
+            }
+        }
+
+        // Add some demo comments if none exist
+        if (!localStorage.getItem('comments')) {
+            const demoComments = [
+                {
+                    name: 'Alice',
+                    email: 'alice@example.com',
+                    comment: 'Great article! Very informative.',
+                    date: new Date().toLocaleString()
+                },
+                {
+                    name: 'Bob',
+                    email: 'bob@example.com',
+                    comment: 'Thanks for sharing this valuable content!',
+                    date: new Date().toLocaleString()
+                }
+            ];
+            localStorage.setItem('comments', JSON.stringify(demoComments));
+        }
+    </script>
+</body>
+</html>
