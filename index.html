@@ -4,244 +4,264 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vulnerable Blog ssssssb</title>
+    <!-- Google Fonts Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 26px;
         }
-
         .container {
             max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin: 22px auto;
+            background: rgba(255,255,255,0.98);
+            border-radius: 18px;
+            box-shadow: 0 14px 60px rgba(80,30,120,0.2), 0 1.5px 4px rgba(110,86,146,0.07);
             overflow: hidden;
+            transition: box-shadow 0.2s;
         }
-
+        .container:hover {
+            box-shadow: 0 26px 100px rgba(80,30,120,0.26), 0 2.5px 7px rgba(110,86,146,0.11);
+        }
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7f9cf5 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 40px 32px 30px 32px;
             text-align: center;
+            border-bottom-left-radius: 32px 14px;
+            border-bottom-right-radius: 32px 14px;
+            box-shadow: 0 6px 20px rgba(102,126,234,0.08);
         }
-
         header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2.85em;
+            font-weight: 700;
+            margin-bottom: 13px;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 8px rgba(40, 50, 100, 0.12);
         }
-
+        header p {
+            font-size: 1.13em;
+            opacity: 0.92;
+        }
         .warning-banner {
-            background: #ff6b6b;
+            background: linear-gradient(90deg,#ff6b6b 50%, #f94f4f 100%);
             color: white;
-            padding: 15px;
+            padding: 18px;
             text-align: center;
             font-weight: bold;
+            border-radius: 0 0 10px 10px;
+            letter-spacing: 1px;
+            font-size: 16.5px;
+            margin-bottom: 14px;
+            box-shadow: 0 3px 16px rgba(255,107,107,0.09);
         }
-
         .content {
-            padding: 30px;
+            padding: 48px 36px 30px 36px;
         }
-
         .vulnerability-info {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin-bottom: 30px;
-            border-radius: 4px;
+            background: #fff8e5;
+            border-left: 6px solid #ffc107;
+            padding: 18px 20px;
+            margin-bottom: 35px;
+            border-radius: 10px;
         }
-
         .vulnerability-info h3 {
             color: #856404;
             margin-bottom: 10px;
+            font-size: 1.13em;
         }
-
         .vulnerability-info ul {
-            margin-left: 20px;
+            margin-left: 18px;
             color: #856404;
         }
-
         .vulnerability-info ul li {
-            margin: 5px 0;
+            margin: 6px 0;
         }
-
         .comment-section {
-            margin-top: 40px;
+            margin-top: 48px;
         }
-
         .comment-form {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 8px;
-            margin-bottom: 30px;
+            background: #f3f6fb;
+            padding: 32px 24px 28px 24px;
+            border-radius: 13px;
+            margin-bottom: 36px;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.07);
         }
-
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
-
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
+            margin-bottom: 7px;
+            font-weight: 700;
+            color: #5b5b5b;
         }
-
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            padding: 13px 15px;
+            border: 2.3px solid #ccc;
+            border-radius: 8px;
+            font-size: 15.5px;
+            background: #f8f8fc;
+            letter-spacing: 0.2px;
+            transition: border 0.25s, background .15s;
         }
-
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #7f9cf5;
+            background: white;
         }
-
         .form-group textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 120px;
+            max-height: 220px;
         }
-
         .btn-submit {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7f9cf5 0%, #a385eb 100%);
             color: white;
-            padding: 12px 30px;
+            padding: 13px 36px;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: filter 0.18s, transform 0.2s;
+            box-shadow: 0 2px 10px rgba(102,126,234,0.11);
+            letter-spacing: 1px;
         }
-
         .btn-submit:hover {
-            transform: translateY(-2px);
+            filter: brightness(1.085) saturate(1.12);
+            transform: translateY(-3px) scale(1.035);
         }
-
         .btn-clear {
-            background: #dc3545;
+            background: linear-gradient(100deg,#f54a51 0%, #90357f 100%);
             color: white;
-            padding: 12px 30px;
+            padding: 13px 36px;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 700;
             cursor: pointer;
             margin-left: 10px;
-            transition: transform 0.2s;
+            transition: filter 0.18s, transform 0.2s;
+            box-shadow: 0 2px 10px rgba(243,80,70,0.06);
         }
-
         .btn-clear:hover {
-            transform: translateY(-2px);
+            filter: brightness(1.095) saturate(1.16);
+            transform: translateY(-2px) scale(1.03);
         }
-
         .comments-list {
-            margin-top: 30px;
+            margin-top: 32px;
         }
-
         .comment {
             background: white;
-            border: 1px solid #e0e0e0;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1.7px solid #ead9fc;
+            padding: 23px;
+            margin-bottom: 17px;
+            border-radius: 11px;
+            box-shadow: 0 2px 11px rgba(157,147,225,0.06);
+            transition: box-shadow 0.18s;
         }
-
+        .comment:hover {
+            box-shadow: 0 4px 28px rgba(150,130,234,0.14);
+        }
         .comment-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 11px;
+            border-bottom: 1px solid #f3e8fd;
         }
-
         .comment-author {
             font-weight: 700;
-            color: #667eea;
-            font-size: 16px;
+            color: #7f9cf5;
+            font-size: 17px;
         }
-
         .comment-date {
-            color: #999;
+            color: #aaaaf5;
             font-size: 13px;
         }
-
         .comment-body {
-            color: #333;
-            line-height: 1.6;
+            color: #3c3c3c;
+            line-height: 1.62;
             word-wrap: break-word;
         }
-
         .search-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 8px;
-            margin-bottom: 30px;
+            background: #f4f7fd;
+            padding: 27px 24px;
+            border-radius: 12px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 10px rgba(102,126,234,0.03);
         }
-
         .search-box {
             display: flex;
             gap: 10px;
         }
-
         .search-box input {
             flex: 1;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
+            padding: 13px;
+            border: 2.1px solid #babde0;
+            border-radius: 8px;
+            font-size: 15px;
         }
-
+        .search-box input:focus {
+            outline: none;
+            border-color: #7f9cf5;
+        }
         .search-box button {
-            padding: 12px 24px;
-            background: #667eea;
+            padding: 13px 25px;
+            background: linear-gradient(135deg, #7f9cf5 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 16px;
+            transition: filter 0.18s, transform 0.17s;
         }
-
+        .search-box button:hover {
+            filter: brightness(1.11) saturate(1.09);
+            transform: translateY(-2px) scale(1.04);
+        }
         .search-results {
-            margin-top: 20px;
+            margin-top: 21px;
             padding: 15px;
             background: white;
-            border-radius: 6px;
+            border-radius: 8px;
             min-height: 50px;
+            box-shadow: 0 1px 3px rgba(194,174,234,0.07);
         }
-
         footer {
-            background: #2c3e50;
+            background: linear-gradient(100deg,#7f9cf5 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 26px 22px;
             text-align: center;
+            border-top-left-radius: 26px 13px;
+            border-top-right-radius: 26px 13px;
+            margin-top: 24px;
+            box-shadow: 0 -3px 14px rgba(130,110,210,0.03);
         }
-
         .vulnerability-badge {
             display: inline-block;
             background: #dc3545;
             color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 6px 13px;
+            border-radius: 5px;
+            font-size: 12.6px;
             font-weight: bold;
-            margin-left: 10px;
+            margin-left: 16px;
+            letter-spacing: 0.7px;
+            box-shadow: 0 1px 3px rgba(243,80,70,0.09);
         }
     </style>
 </head>
@@ -442,5 +462,6 @@
             localStorage.setItem('comments', JSON.stringify(demoComments));
         }
     </script>
+    <!-- beautify: Đã nâng cấp UI bằng Google Fonts và CSS hiện đại hơn [2025-10-30] -->
 </body>
 </html>
