@@ -19,7 +19,7 @@
             padding: 26px;
         }
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 22px auto;
             background: rgba(255,255,255,0.98);
             border-radius: 18px;
@@ -93,6 +93,11 @@
             border-radius: 13px;
             margin-bottom: 36px;
             box-shadow: 0 4px 16px rgba(102,126,234,0.07);
+        }
+        .comment-button-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 4px;
         }
         .form-group {
             margin-bottom: 24px;
@@ -263,6 +268,33 @@
             letter-spacing: 0.7px;
             box-shadow: 0 1px 3px rgba(243,80,70,0.09);
         }
+        .protected-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 6px 13px;
+            border-radius: 5px;
+            font-size: 12.6px;
+            font-weight: bold;
+            margin-left: 16px;
+            letter-spacing: 0.7px;
+            box-shadow: 0 1px 3px rgba(40,167,69,0.09);
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        @media (min-width: 980px) {
+            .two-column { grid-template-columns: 1fr 1fr; }
+        }
+        .panel {
+            background: rgba(255,255,255,0.96);
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 2px 10px rgba(102,126,234,0.05);
+        }
+        .panel h2 { margin-bottom: 12px; }
     </style>
 </head>
 <body>
@@ -289,47 +321,91 @@
                 </ul>
             </div>
 
-            <!-- Search Section (Reflected XSS) -->
-            <div class="search-section">
-                <h2>🔍 Search Posts <span class="vulnerability-badge">Reflected XSS</span></h2>
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search for posts...">
-                    <button onclick="searchPosts()">Search</button>
+            <div class="two-column">
+                <!-- Left: Vulnerable -->
+                <div class="panel">
+                    <!-- Search Section (Reflected XSS) -->
+                    <div class="search-section">
+                        <h2>🔍 Search Posts <span class="vulnerability-badge">Reflected XSS</span></h2>
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search for posts...">
+                            <button onclick="searchPosts()">Search</button>
+                        </div>
+                        <div class="search-results" id="searchResults"></div>
+                    </div>
+
+                    <!-- Comment Section (Stored XSS) -->
+                    <div class="comment-section">
+                        <h2>💬 Comments <span class="vulnerability-badge">Stored XSS</span></h2>
+                        <div class="comment-form">
+                            <form id="commentForm" onsubmit="return submitComment(event)">
+                                <div class="form-group">
+                                    <label for="name">Name:</label>
+                                    <input type="text" id="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email:</label>
+                                    <input type="email" id="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="comment">Comment:</label>
+                                    <textarea id="comment" required></textarea>
+                                </div>
+                                <div class="comment-button-row">
+                                    <button type="submit" class="btn-submit">Post Comment</button>
+                                    <button type="button" class="btn-clear" onclick="clearComments()">Clear All Comments</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="comments-list" id="commentsList"></div>
+                    </div>
+
+                    <!-- URL Parameter Section (DOM-based XSS) -->
+                    <div id="urlMessage" style="margin-top: 30px;"></div>
                 </div>
-                <div class="search-results" id="searchResults"></div>
-            </div>
 
-            <!-- Comment Section (Stored XSS) -->
-            <div class="comment-section">
-                <h2>💬 Comments <span class="vulnerability-badge">Stored XSS</span></h2>
-                
-                <div class="comment-form">
-                    <form id="commentForm" onsubmit="return submitComment(event)">
-                        <div class="form-group">
-                            <label for="name">Name:</label>
-                            <input type="text" id="name" required>
+                <!-- Right: Protected -->
+                <div class="panel">
+                    <!-- Search Section (Protected) -->
+                    <div class="search-section">
+                        <h2>🔍 Search Posts <span class="protected-badge">Protected</span></h2>
+                        <div class="search-box">
+                            <input type="text" id="searchInputSafe" placeholder="Search for posts...">
+                            <button onclick="searchPostsSafe()">Search</button>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="email">Email:</label>
-                            <input type="email" id="email" required>
+                        <div class="search-results" id="searchResultsSafe"></div>
+                    </div>
+
+                    <!-- Comment Section (Protected) -->
+                    <div class="comment-section">
+                        <h2>💬 Comments <span class="protected-badge">Protected</span></h2>
+                        <div class="comment-form">
+                            <form id="commentFormSafe" onsubmit="return submitCommentSafe(event)">
+                                <div class="form-group">
+                                    <label for="nameSafe">Name:</label>
+                                    <input type="text" id="nameSafe" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="emailSafe">Email:</label>
+                                    <input type="email" id="emailSafe" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="commentSafe">Comment:</label>
+                                    <textarea id="commentSafe" required></textarea>
+                                </div>
+                                <div class="comment-button-row">
+                                    <button type="submit" class="btn-submit">Post Comment</button>
+                                    <button type="button" class="btn-clear" onclick="clearCommentsSafe()">Clear All Comments</button>
+                                </div>
+                            </form>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="comment">Comment:</label>
-                            <textarea id="comment" required></textarea>
-                        </div>
-                        
-                        <button type="submit" class="btn-submit">Post Comment</button>
-                        <button type="button" class="btn-clear" onclick="clearComments()">Clear All Comments</button>
-                    </form>
+                        <div class="comments-list" id="commentsListSafe"></div>
+                    </div>
+
+                    <!-- URL Parameter Section (Protected) -->
+                    <div id="urlMessageSafe" style="margin-top: 30px;"></div>
                 </div>
-
-                <div class="comments-list" id="commentsList"></div>
             </div>
-
-            <!-- URL Parameter Section (DOM-based XSS) -->
-            <div id="urlMessage" style="margin-top: 30px;"></div>
         </div>
 
         <footer>
@@ -341,10 +417,12 @@
     </div>
 
     <script>
-        // Load comments on page load
+        // Load comments on page load for both panels
         window.onload = function() {
             loadComments();
+            loadCommentsSafe();
             checkUrlParameters();
+            checkUrlParametersSafe();
         };
 
         // VULNERABLE: Stored XSS - No sanitization
@@ -402,6 +480,86 @@
             `).join('');
         }
 
+        // ======== PROTECTED SIDE HELPERS ========
+        function escapeHTML(str) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            };
+            return String(str).replace(/[&<>"']/g, ch => map[ch]);
+        }
+
+        // PROTECTED: sanitize on write and render with textContent
+        function submitCommentSafe(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('nameSafe').value;
+            const email = document.getElementById('emailSafe').value;
+            const comment = document.getElementById('commentSafe').value;
+
+            let comments = JSON.parse(localStorage.getItem('commentsSafe') || '[]');
+            comments.push({
+                name: escapeHTML(name),
+                email: escapeHTML(email),
+                comment: escapeHTML(comment),
+                date: new Date().toLocaleString()
+            });
+            localStorage.setItem('commentsSafe', JSON.stringify(comments));
+
+            document.getElementById('commentFormSafe').reset();
+            loadCommentsSafe();
+            return false;
+        }
+
+        function loadCommentsSafe() {
+            const list = document.getElementById('commentsListSafe');
+            const comments = JSON.parse(localStorage.getItem('commentsSafe') || '[]');
+            if (comments.length === 0) {
+                list.textContent = 'No comments yet. Be the first to comment!';
+                list.style.color = '#999';
+                list.style.textAlign = 'center';
+                return;
+            }
+            // Build nodes safely
+            list.innerHTML = '';
+            comments.forEach(c => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'comment';
+
+                const header = document.createElement('div');
+                header.className = 'comment-header';
+
+                const author = document.createElement('span');
+                author.className = 'comment-author';
+                author.textContent = c.name;
+
+                const date = document.createElement('span');
+                date.className = 'comment-date';
+                date.textContent = c.date;
+
+                header.appendChild(author);
+                header.appendChild(date);
+
+                const body = document.createElement('div');
+                body.className = 'comment-body';
+                body.textContent = c.comment;
+
+                wrapper.appendChild(header);
+                wrapper.appendChild(body);
+                list.appendChild(wrapper);
+            });
+        }
+
+        function clearCommentsSafe() {
+            if (confirm('Are you sure you want to clear all comments?')) {
+                localStorage.removeItem('commentsSafe');
+                loadCommentsSafe();
+            }
+        }
+
         // VULNERABLE: Reflected XSS - Search functionality
         function searchPosts() {
             const searchInput = document.getElementById('searchInput').value;
@@ -412,6 +570,24 @@
                 <p>You searched for: <strong>${searchInput}</strong></p>
                 <p style="color: #999; margin-top: 10px;">No results found.</p>
             `;
+        }
+
+        // PROTECTED: Reflected search
+        function searchPostsSafe() {
+            const value = document.getElementById('searchInputSafe').value;
+            const box = document.getElementById('searchResultsSafe');
+            box.innerHTML = '';
+            const p1 = document.createElement('p');
+            const strong = document.createElement('strong');
+            p1.append('You searched for: ');
+            strong.textContent = value;
+            p1.appendChild(strong);
+            const p2 = document.createElement('p');
+            p2.style.color = '#999';
+            p2.style.marginTop = '10px';
+            p2.textContent = 'No results found.';
+            box.appendChild(p1);
+            box.appendChild(p2);
         }
 
         // VULNERABLE: DOM-based XSS - URL parameters
@@ -432,6 +608,44 @@
             if (username) {
                 // VULNERABLE: Directly inserting URL parameter
                 document.querySelector('header p').innerHTML = `Welcome back, ${username}!`;
+            }
+        }
+
+        // PROTECTED: DOM params safely
+        function checkUrlParametersSafe() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const username = urlParams.get('username');
+
+            if (message) {
+                const box = document.getElementById('urlMessageSafe');
+                box.innerHTML = '';
+                const wrap = document.createElement('div');
+                wrap.style.background = '#d4edda';
+                wrap.style.border = '1px solid #c3e6cb';
+                wrap.style.padding = '15px';
+                wrap.style.borderRadius = '6px';
+                wrap.style.color = '#155724';
+                const strong = document.createElement('strong');
+                strong.textContent = 'Message:';
+                const span = document.createElement('span');
+                span.textContent = ' ' + message;
+                wrap.appendChild(strong);
+                wrap.appendChild(span);
+                box.appendChild(wrap);
+            }
+
+            if (username) {
+                // Keep the original subtitle intact; show safe greeting under it
+                const headerEl = document.querySelector('header');
+                let greet = document.getElementById('safeGreeting');
+                if (!greet) {
+                    greet = document.createElement('p');
+                    greet.id = 'safeGreeting';
+                    greet.style.marginTop = '6px';
+                    headerEl.appendChild(greet);
+                }
+                greet.textContent = `Welcome back, ${username}!`;
             }
         }
 
@@ -461,7 +675,13 @@
             ];
             localStorage.setItem('comments', JSON.stringify(demoComments));
         }
+        // Seed protected side with demo comments as well
+        if (!localStorage.getItem('commentsSafe')) {
+            const demoSafe = [
+                { name: 'Charlie', email: 'charlie@example.com', comment: 'This side is safe ✨', date: new Date().toLocaleString() }
+            ];
+            localStorage.setItem('commentsSafe', JSON.stringify(demoSafe));
+        }
     </script>
-    <!-- beautify: Đã nâng cấp UI bằng Google Fonts và CSS hiện đại hơn [2025-10-30] -->
 </body>
 </html>
