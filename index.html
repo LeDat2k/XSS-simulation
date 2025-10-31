@@ -467,7 +467,13 @@
     // VULNERABLE: Xóa toàn bộ comment trên backend
     async function clearComments() {
         if (confirm('Are you sure you want to clear all comments?')) {
-            await fetch(`${BACKEND_URL}/comments`, { method: 'DELETE' });
+            try {
+                await fetch(`${BACKEND_URL}/comments`, { method: 'DELETE' });
+            } catch (e) {
+                // ignore network errors for backend during local clear
+            }
+            // Also clear any localStorage copy used earlier demos
+            localStorage.removeItem('comments');
             await loadComments();
         }
     }
